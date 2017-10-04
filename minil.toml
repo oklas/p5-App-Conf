@@ -1,0 +1,4 @@
+name = "Conf"
+# badges = ["travis"]
+module_maker="ModuleBuildTiny"
+
