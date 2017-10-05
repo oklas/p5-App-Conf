@@ -2,6 +2,14 @@ package Conf::Json;
 
 use JSON::MaybeXS;
 
+sub parse {
+  return decode_json shift;
+}
+
+sub stringify {
+  return encode_json shift;
+}
+
 sub load {
    my ( $filepath ) = @_;
    local $/;

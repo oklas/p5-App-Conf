@@ -2,6 +2,14 @@ package Conf::Yaml;
 
 use YAML::XS;
 
+sub parse {
+  return Load shift;
+}
+
+sub stringify {
+  return Dump shift;
+}
+
 sub load {
    my ( $filepath ) = @_;
    local $/;
