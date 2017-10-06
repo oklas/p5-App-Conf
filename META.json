@@ -1,5 +1,5 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "Configuration files management library and program",
    "author" : [
       "Serguei Okladnikov <oklaspec@gmail.com>"
    ],
@@ -12,7 +12,7 @@
       "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
       "version" : "2"
    },
-   "name" : "Conf",
+   "name" : "Flexconf",
    "no_index" : {
       "directory" : [
          "t",
@@ -52,6 +52,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/oklas/p5-Flexconf/issues"
+      },
+      "homepage" : "https://github.com/oklas/p5-Flexconf",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/oklas/p5-Flexconf.git",
+         "web" : "https://github.com/oklas/p5-Flexconf"
+      }
+   },
    "version" : "0.01",
    "x_serialization_backend" : "JSON::PP version 2.27300_01"
 }

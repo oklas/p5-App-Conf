@@ -1,4 +1,4 @@
-package Conf::Yaml;
+package Flexconf::Yaml;
 
 use YAML::XS;
 

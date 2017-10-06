@@ -1,4 +1,4 @@
-name = "Conf"
+name = "Flexconf"
 # badges = ["travis"]
 module_maker="ModuleBuildTiny"
 

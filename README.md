@@ -1,14 +1,14 @@
 # NAME
 
-Conf - It's new $module
+Flexconf - Configuration files management library and program
 
 # SYNOPSIS
 
-    use Conf;
+    use Flexconf;
 
 # DESCRIPTION
 
-Conf is ...
+Flexconf is ...
 
 # LICENSE
 

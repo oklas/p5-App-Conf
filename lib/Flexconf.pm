@@ -1,4 +1,4 @@
-package Conf;
+package Flexconf;
 use 5.008001;
 use strict;
 use warnings;
@@ -9,21 +9,21 @@ our $VERSION = "0.01";
 
 =head1 NAME
 
-Conf - It's new $module
+Flexconf - Configuration files management library and program
 
 =head1 SYNOPSIS
 
-    use Conf;
+    use Flexconf;
 
 =head1 DESCRIPTION
 
-Conf is ...
+Flexconf is ...
 
 =cut
 
 
-use Conf::Json;
-use Conf::Yaml;
+use Flexconf::Json;
+use Flexconf::Yaml;
 
 sub new {
   my ($package, $data) = @_;
@@ -43,8 +43,8 @@ sub data {
 
 sub _namespace {
   my ($self, $type) = @_;
-  return 'Conf::Json' if 'json' eq $type;
-  return 'Conf::Yaml' if 'yaml' eq $type;
+  return 'Flexconf::Json' if 'json' eq $type;
+  return 'Flexconf::Yaml' if 'yaml' eq $type;
   die 'wrong conf format'
 }
 

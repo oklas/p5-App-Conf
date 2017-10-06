@@ -1,4 +1,4 @@
-package Conf::Json;
+package Flexconf::Json;
 
 use JSON::MaybeXS;
 

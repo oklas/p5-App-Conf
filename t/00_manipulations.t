@@ -2,13 +2,13 @@ use strict;
 use Test::More 0.98;
 
 use_ok $_ for qw(
-    Conf
+  Flexconf
 );
 
 my $c;
 
 sub create {
-  return Conf->new({
+  return Flexconf->new({
     k => {
       h => {
         hk => 'hv'
