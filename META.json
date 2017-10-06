@@ -42,6 +42,8 @@
       },
       "runtime" : {
          "requires" : {
+            "JSON::MaybeXS" : "0",
+            "YAML::XS" : "0",
             "perl" : "5.008001"
          }
       },
