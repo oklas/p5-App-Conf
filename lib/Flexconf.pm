@@ -95,14 +95,14 @@ sub type_by_filename {
 sub stringify {
   my ($self, $type) = @_;
   my $namespace = $self->_namespace($type);
-  return (\"$namespace::stringify")->($self->data);
+  return (\&{"${namespace}::stringify"})->($self->data);
 }
 
 
 sub parse {
   my ($self, $type, $string) = @_;
   my $namespace = $self->_namespace($type);
-  $self->data((\"$namespace::parse")->(), $string);
+  $self->data((\&{"${namespace}::parse"})->(), $string);
 }
 
 
@@ -114,7 +114,7 @@ sub save {
   }
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
-  (\"$namespace::save")->($filename, $self->data);
+  (\&{"${namespace}::save"})->($filename, $self->data);
 }
 
 
@@ -125,8 +125,8 @@ sub load {
     $type = 'auto';
   }
   $type = $self->type_by_filename($filename) if $type eq 'auto';
-  my $namespace = $self->type_by_filename($filename);
-  $self->data( (\"$namespace::load")->($filename) );
+  my $namespace = $self->_namespace($type);
+  $self->data( (\&{"${namespace}::load"})->($filename) );
 }
 
 
@@ -151,6 +151,12 @@ sub get {
   $path = path_to_array($path);
   my $data = $self->data;
   for(@$path) {
+    unless( defined $data ) {
+      return undef unless $self->{strict};
+      die "unable to access by key '$_' ".
+	"when data is neither hash nor array for path: ".
+	  path_to_str($path)."'";
+    }
     if( 'HASH' eq ref($data) ) {
       $data = $data->{$_};
       next;
@@ -163,9 +169,7 @@ sub get {
       $data = $data->[$_];
       next;
     }
-    die "unable to access by key '$_' ".
-      "when data is neither hash nor array for path: ".
-        path_to_str($path)."'";
+    $data = undef;
   }
   return $data;
 }
