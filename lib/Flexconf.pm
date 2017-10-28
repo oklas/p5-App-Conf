@@ -11,6 +11,12 @@ our $VERSION = "0.01";
 
 Flexconf - Configuration files management library and program
 
+Currently this module API and CLI is subject to change.
+
+Any suggestions or bugreports are appreciated at issue tracker.
+Show your support and acceptance of package and ideas by starring.
+Please visit https://github.com/oklas/flexconf for that.
+
 =head1 SYNOPSIS
 
     use Flexconf;
@@ -55,6 +61,8 @@ Flexconf is base for configuration management
 
 =cut
 
+
+use Storable qw[dclone];
 
 use Flexconf::Json;
 use Flexconf::Yaml;
@@ -232,6 +240,9 @@ sub copy {
   my $path_preto = $self->path_to_array($path_to);
   my $key_to = pop @$path_preto;
   my $data = $self->get($path_from);
+  if( grep {$_ eq ref $data} ('HASH', 'ARRAY') ) {
+    $data = dclone $data;
+  }
   if( !defined $key_to || $key_to eq '' ) {
     $self->data($data);
     return;
