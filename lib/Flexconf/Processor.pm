@@ -12,23 +12,23 @@ sub new {
   my ($package, $flexconf) = @_;
   bless {
     conf => $flexconf,
-    json => JSON::MaybeXS->new->allow_nonref->utf8,
+    json => JSON::MaybeXS->new->allow_nonref->pretty(1)->utf8,
    }, $package;
 }
 
 sub cmd_hash {
   my @cmds = qw[
-    on alias load save get assign remove copy
+    on alias load save get put rm cp mv
   ];
   my %cmds;
   map{ $cmds{$_} = {} } @cmds;
-  $cmds{assign} = {json_arg=>2};
+  $cmds{put} = {json_arg=>2};
   return \%cmds;
 }
 
 sub init {
   my ($self, $string) = @_;
-  $self->{lexems} = [ split(/([;\n\s])/mig, $string), ';' ];
+  $self->{lexems} = [ grep{length} split(/([;\n\s])/mig, $string), ';' ];
   $self->{json}->incr_reset;
   $self->{stmt} = [];
   $self->{stmt_list} = [];
@@ -51,6 +51,7 @@ sub error {
 sub stmt_init {
   my ($self) = @_;
   $self->{stmt} = [];
+  $self->{state} = CMD;
   $self->{on} = '';
 }
 
@@ -173,6 +174,18 @@ sub tok_arg {
 sub tok_json {
   my ($self, $tok) = @_;
   $self->tok_arg($tok);
+}
+
+sub eval {
+  my ($self, $flexconf, $string) = @_;
+  my $error = $self->parse($string);
+  return $error if $error;
+  foreach(@{$self->{stmt_list}}) {
+    my ( $method, @args ) = @{$_};
+    my $result = $flexconf->$method(@args);
+    print JSON::MaybeXS->new->pretty(1)->utf8->
+      space_before(0)->space_after(1)->encode($result) if $result;
+  }
 }
 
 1;

@@ -52,6 +52,9 @@ Please visit https://github.com/oklas/flexconf for that.
     $conf->copy('to', 'from')
     $conf->copy('k.a', 'h.a.0')
 
+    # move subtree
+    $conf->move('k.a', 'h.a.0')
+
     # remove subtree by path
     $conf->remove('k.v')
 
@@ -183,6 +186,7 @@ sub get {
 }
 
 
+*put = \&assign;
 sub assign {
   my ($self, $path, $data) = @_;
   my $path_pre = $self->path_to_array($path);
@@ -209,6 +213,7 @@ sub assign {
 }
 
 
+*rm = \&remove;
 sub remove {
   my ($self, $path) = @_;
   my $path_pre = $self->path_to_array($path);
@@ -235,6 +240,7 @@ sub remove {
 }
 
 
+*cp = \&copy;
 sub copy {
   my ($self, $path_to, $path_from) = @_;
   my $path_preto = $self->path_to_array($path_to);
@@ -262,6 +268,15 @@ sub copy {
   }
   die "unable to assign to '".(ref($data_to)||'nonref').
     "' by index '$key_to' in path: '".path_to_str($path_to)."'";
+}
+
+
+*mv = \&move;
+sub move {
+  my ($self, $path_to, $path_from) = @_;
+  my $data = $self->get($path_from);
+  $self->remove($path_from);
+  $self->assign($path_to, $data);
 }
 
 
