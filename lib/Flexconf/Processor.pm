@@ -1,6 +1,6 @@
 package Flexconf::Processor;
 
-use Switch;
+use JSON::MaybeXS;
 
 
 use constant ERR  => 0;
@@ -10,7 +10,10 @@ use constant JSON => 3;
 
 sub new {
   my ($package, $flexconf) = @_;
-  bless { conf => $flexconf }, $package;
+  bless {
+    conf => $flexconf,
+    json => JSON::MaybeXS->new->allow_nonref->utf8,
+   }, $package;
 }
 
 sub cmd_hash {
@@ -25,7 +28,8 @@ sub cmd_hash {
 
 sub init {
   my ($self, $string) = @_;
-  $self->{lexems} = [ split/([;\n\s])/mig, $string ];
+  $self->{lexems} = [ split(/([;\n\s])/mig, $string), ';' ];
+  $self->{json}->incr_reset;
   $self->{stmt} = [];
   $self->{stmt_list} = [];
   $self->{state} = CMD;
@@ -71,15 +75,21 @@ sub current_cmd {
 
 sub current_arg_num {
   my ($self) = @_;
-  return -1 + @{ $self->{stmt} };
+  return scalar @{ $self->{stmt} };
 }
 
 sub current_arg_type {
   my ($self) = @_;
   my $cmd = $self->current_cmd();
   my $num = cmd_hash->{$cmd}->{json_arg};
-  return JSON if( $num == $self->current_arg_num );
+  my $next_arg_num = $self->current_arg_num;
+  return JSON if( $num == $next_arg_num );
   return ARG;
+}
+
+sub set_state_by_arg {
+  my ($self) = @_;
+  $self->{state} = $self->current_arg_type;
 }
 
 sub is_space {
@@ -95,7 +105,7 @@ sub is_delim {
 sub is_cmd {
   my $tok = shift;
   my $cmds = cmd_hash;
-  exists $cmd->{$tok};
+  exists $cmds->{$tok};
 }
 
 sub lex {
@@ -103,12 +113,23 @@ sub lex {
   if( JSON == $self->{state} ) {
     return $self->lex_json;
   }
-  my $tok = shift @{ $self->{stmt_list} };
+  my $tok = shift @{ $self->{lexems} };
   $self->{line}++ if $tok eq "\n";
   $tok;
 }
 
 sub lex_json {
+  my ($self) = @_;
+  my $json = $self->{json};
+  my $begin;
+  my $value;
+  until($value || $self->error) {
+    my $tok = shift @{ $self->{lexems} };
+    if( is_space($tok) && !$begin ) { next } else { $begin = 1 }
+    $value = eval { $json->incr_parse($tok); };
+    $self->error($@) if($@);
+  }
+  $value;
 }
 
 sub parse {
@@ -116,13 +137,17 @@ sub parse {
   my $on;
   my @stmt;
   $self->init( $string );
-  while( my $tok = $self->lex ) {
-    switch( $state ) {
-      case ( ERR ) { return $self->{error}; }
-      case ( CMD ) { $self->tok_cmd( $tok ); }
-      case ( ARG ) { $self->tok_arg( $tok ); }
-      case ( JSON ) { $self->tok_json( $tok ); }
-    }
+  my $tok;
+  while( length($tok = $self->lex) ) {
+    my $state = $self->{state};
+    my %switch = (
+      ERR () => sub { die $self->error; },
+      CMD () => sub { $self->tok_cmd( $tok ); },
+      ARG () => sub { $self->tok_arg( $tok ); },
+      JSON() => sub { $self->tok_json( $tok ); },
+    );
+    $switch{$state}->();
+    return $self->error if $self->error;
   }
 }
 
@@ -134,10 +159,7 @@ sub tok_cmd {
     return $self->error("command '$tok' is not exists");
   }
   $self->stmt_push($tok);
-  $self->{state} = ARG;
-  if( JSON == 1+$self->current_arg_type ) {
-    $self->{state} = JSON;
-  }
+  $self->set_state_by_arg();
 }
 
 sub tok_arg {
@@ -145,6 +167,7 @@ sub tok_arg {
   return if( is_space($tok) );
   return $self->stmt_done if( is_delim($tok) );
   $self->stmt_push($tok);
+  $self->set_state_by_arg();
 }
 
 sub tok_json {
