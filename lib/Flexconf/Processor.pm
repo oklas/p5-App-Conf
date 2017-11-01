@@ -2,6 +2,8 @@ package Flexconf::Processor;
 
 use JSON::MaybeXS;
 
+use Flexconf::Commands;
+
 
 use constant ERR  => 0;
 use constant CMD  => 1;
@@ -18,11 +20,13 @@ sub new {
 
 sub cmd_hash {
   my @cmds = qw[
-    on alias load save get put rm cp mv
+    on tree alias load save get put cp copy mv move rm remove
   ];
   my %cmds;
   map{ $cmds{$_} = {} } @cmds;
   $cmds{put} = {json_arg=>2};
+  $cmds{on} = {prefix_argcnt=>1};
+  $cmds{tree} = {prefix_argcnt=>1};
   return \%cmds;
 }
 
@@ -53,11 +57,13 @@ sub stmt_init {
   $self->{stmt} = [];
   $self->{state} = CMD;
   $self->{on} = '';
+  $self->{prefix_stmt} = undef;
 }
 
 sub stmt_done {
   my ($self) = @_;
-  push @{ $self->{stmt_list} }, $self->{stmt};
+  my $stmt = [@{$self->{prefix_stmt}}, @{$self->{stmt}}];
+  push @{ $self->{stmt_list} }, $stmt;
   $self->stmt_init;
 }
 
@@ -74,16 +80,16 @@ sub current_cmd {
   return $self->{stmt}->[0];
 }
 
-sub current_arg_num {
+sub ready_arg_cnt {
   my ($self) = @_;
-  return scalar @{ $self->{stmt} };
+  return -1 + scalar @{ $self->{stmt} };
 }
 
 sub current_arg_type {
   my ($self) = @_;
   my $cmd = $self->current_cmd();
   my $num = cmd_hash->{$cmd}->{json_arg};
-  my $next_arg_num = $self->current_arg_num;
+  my $next_arg_num = 1 + $self->ready_arg_cnt;
   return JSON if( $num == $next_arg_num );
   return ARG;
 }
@@ -91,6 +97,17 @@ sub current_arg_type {
 sub set_state_by_arg {
   my ($self) = @_;
   $self->{state} = $self->current_arg_type;
+}
+
+sub take_prefix_if_any {
+  my ($self) = @_;
+  my $cmd = $self->current_cmd();
+  my $argcnt = cmd_hash->{$cmd}->{prefix_argcnt};
+  return unless $argcnt;
+  return if $argcnt != $self->ready_arg_cnt;
+  my $prefix_stmt = $self->{stmt};
+  $self->stmt_init;
+  $self->{prefix_stmt} = $prefix_stmt;
 }
 
 sub is_space {
@@ -180,9 +197,10 @@ sub eval {
   my ($self, $flexconf, $string) = @_;
   my $error = $self->parse($string);
   return $error if $error;
+  my $commands = Flexconf::Commands->new($flexconf);
   foreach(@{$self->{stmt_list}}) {
     my ( $method, @args ) = @{$_};
-    my $result = $flexconf->$method(@args);
+    my $result = $commands->$method($method, @args);
     print JSON::MaybeXS->new->pretty(1)->utf8->
       space_before(0)->space_after(1)->encode($result) if $result;
   }
