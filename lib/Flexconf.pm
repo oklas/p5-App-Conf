@@ -28,17 +28,18 @@ Please visit https://github.com/oklas/flexconf for that.
     $string = $conf->stringify('format')
 
     # save or load, format (may be ommitted): 'auto'||'json'||'yaml'
-    $conf->load(format => $filename)
-    $conf->save(firmat => $filename)
-    $conf->load($filename) # autodetect format by file ext
-    $conf->save($filename) # autodetect format by file ext
+    $conf->load('app.module', format => $filename)
+    $conf->save('app.module', firmat => $filename)
+    $conf->load('app.module', $filename) # autodetect format by file ext
+    $conf->save('app.module', $filename) # autodetect format by file ext
 
     # replace whole tree
-    $conf->data({k=>'v',...})
+    $conf->assign('',{k=>'v'...})
+    $conf->assign('.',{k=>'v'...})
 
     # access to root of conf tree
-    $root = $conf->data
     $root = $conf->get
+    $root = $conf->get '' # or '.'
 
     # access to subtree in depth by path
     $module_conf = $conf->get('app.module')
@@ -118,26 +119,27 @@ sub parse {
 
 
 sub save {
-  my ($self, $type, $filename) = @_;
-  if( 2 == scalar @_ ) {
+  my ($self, $path, $type, $filename) = @_;
+  if( 3 == scalar @_ ) {
     $filename = $type;
     $type = 'auto';
   }
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
-  (\&{"${namespace}::save"})->($filename, $self->data);
+  my $data = $self->get($path);
+  (\&{"${namespace}::save"})->($filename, $data);
 }
 
 
 sub load {
-  my ($self, $type, $filename) = @_;
-  if( 2 == scalar @_ ) {
+  my ($self, $path, $type, $filename) = @_;
+  if( 3 == scalar @_ ) {
     $filename = $type;
     $type = 'auto';
   }
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
-  $self->data( (\&{"${namespace}::load"})->($filename) );
+  $self->assign($path, (\&{"${namespace}::load"})->($filename) );
 }
 
 
