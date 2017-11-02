@@ -20,7 +20,7 @@ sub new {
 
 sub cmd_hash {
   my @cmds = qw[
-    on tree alias load save get put cp copy mv move rm remove
+    on tree eval load save get put cp copy mv move rm remove
   ];
   my %cmds;
   map{ $cmds{$_} = {} } @cmds;
@@ -32,7 +32,7 @@ sub cmd_hash {
 
 sub init {
   my ($self, $string) = @_;
-  $self->{lexems} = [ grep{length} split(/([;\n\s])/mig, $string), ';' ];
+  $self->{lexems} = [ grep{length} split(/([;\n\t ])/mig, $string), ';' ];
   $self->{json}->incr_reset;
   $self->{stmt} = [];
   $self->{stmt_list} = [];
@@ -112,12 +112,12 @@ sub take_prefix_if_any {
 
 sub is_space {
   my $tok = shift;
-  $tok =~ /^\s+$/;
+  $tok =~ /^[\t ]+$/;
 }
 
 sub is_delim {
   my $tok = shift;
-  $tok =~ /^[;\t]+$/;
+  $tok =~ /^[;\n]+$/;
 }
 
 sub is_cmd {
@@ -194,9 +194,10 @@ sub tok_json {
 }
 
 sub eval {
-  my ($self, $flexconf, $string) = @_;
+  my ($self, $string) = @_;
   my $error = $self->parse($string);
   return $error if $error;
+  my $flexconf = $self->{conf};
   my $commands = Flexconf::Commands->new($flexconf);
   foreach(@{$self->{stmt_list}}) {
     my ( $method, @args ) = @{$_};

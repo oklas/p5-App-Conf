@@ -37,6 +37,18 @@ sub remove {
   $self->{conf}->$cmd($path);
 }
 
+sub eval {
+  my ($self, $cmd, $path) = @_;
+  my $src = $self->{conf}->get($path);
+  if('ARRAY' eq ref $src) {
+    die "not a string in array to eval '$path'" if( grep{ref} @$src );
+    $src = join "\n", @$src;
+  }
+  die "not a string to eval '$path'" if( ref($src) );
+  my $processor = Flexconf::Processor->new($self->{conf});
+  $processor->eval($src);
+}
+
 sub tree {
   my ($self, $prefix_cmd, $prefix_arg, $cmd, @args) = @_;
   my $fn = $prefix_cmd . '_' . $cmd;
