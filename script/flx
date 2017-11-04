@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+use Flexconf::Cli;
+Flexconf::Cli::main @ARGV;
+
+__END__
+
+
+=head1 NAME
+
+Flexconf command line interface implementation
+
+=head1 SYNOPSIS
+
+    flx [-t type] [-c path-to-conf] [-f 'flexconf script']
+
+=cut
+
