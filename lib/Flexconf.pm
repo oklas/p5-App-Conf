@@ -59,6 +59,9 @@ Please visit https://github.com/oklas/flexconf for that.
     # remove subtree by path
     $conf->remove('k.v')
 
+    # methods, which return conf itself:
+    # load, save, asign, copy, move, remove
+
 =head1 DESCRIPTION
 
 Flexconf is base for configuration management
@@ -128,6 +131,7 @@ sub save {
   my $namespace = $self->_namespace($type);
   my $data = $self->get($path);
   (\&{"${namespace}::save"})->($filename, $data);
+  $self;
 }
 
 
@@ -140,6 +144,7 @@ sub load {
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
   $self->assign($path, (\&{"${namespace}::load"})->($filename) );
+  $self;
 }
 
 
@@ -159,6 +164,36 @@ sub path_to_str {
 }
 
 
+sub reserve {
+  my ($self, $path) = @_;
+  $path = path_to_array($path);
+  my $data = $self->data;
+  if(not defined $data) {
+    $self->data({});
+    $data = $self->data;
+  }
+  for(@$path) {
+    if('ARRAY' eq ref $data) {
+      unless(/^\d+$/) {
+        die "unable to access array element by key '$_' ".
+          "in path: '".path_to_str($path)."'";
+      }
+      $data->[$_] = {} unless exists $data->[$_];
+      $data = $data->[$_];
+      next;
+    }
+    if('HASH' eq ref $data) {
+      $data->{$_} = {} unless exists $data->{$_};
+      $data = $data->{$_};
+      next;
+    }
+    die "only hash or array must be parent for key '$_' ".
+      "in path: '".path_to_str($path)."'";
+  }
+  return $data;
+}
+
+
 sub get {
   my ($self, $path) = @_;
   $path = path_to_array($path);
@@ -167,8 +202,8 @@ sub get {
     unless( defined $data ) {
       return undef unless $self->{strict};
       die "unable to access by key '$_' ".
-	"when data is neither hash nor array for path: ".
-	  path_to_str($path)."'";
+        "when data is neither hash nor array for path: '".
+        path_to_str($path)."'";
     }
     if( 'HASH' eq ref($data) ) {
       $data = $data->{$_};
@@ -195,12 +230,12 @@ sub assign {
   my $key_pre = pop @$path_pre;
   if( !defined $key_pre || $key_pre eq '' ) {
     $self->data($data);
-    return;
+    return $self;
   }
-  my $data_pre = $self->get($path_pre);
+  my $data_pre = $self->reserve($path_pre);
   if( 'HASH' eq ref $data_pre ) {
     $data_pre->{$key_pre} = $data;
-    return;
+    return $self;
   }
   if( 'ARRAY' eq ref $data_pre ) {
     unless( $key_pre =~ /^\d+$/ ) {
@@ -208,7 +243,7 @@ sub assign {
         path_to_str($path)."'";
     }
     $data_pre->[$key_pre] = $data;
-    return;
+    return $self;
   }
   die "unable to assign to '".(ref($data_pre)||'nonref').
     "' by index '$key_pre' in path: '".path_to_str($path)."'";
@@ -222,12 +257,12 @@ sub remove {
   my $key_pre = pop @$path_pre;
   if( !defined $key_pre || $key_pre eq '' ) {
     $self->data(undef);
-    return;
+    return $self;
   }
   my $data_pre = $self->get($path_pre);
   if( 'HASH' eq ref $data_pre ) {
     delete $data_pre->{$key_pre};
-    return;
+    return $self;
   }
   if( 'ARRAY' eq ref $data_pre ) {
     unless( $key_pre =~ /^\d+$/ ) {
@@ -235,7 +270,7 @@ sub remove {
       path_to_str($path)."'";
     }
     splice @$data_pre, $key_pre, 1;
-    return;
+    return $self;
   }
   die "unable to remove from '".(ref($data_pre)||'nonref').
     "' by index '$key_pre' in path: '".path_to_str($path)."'";
@@ -253,12 +288,12 @@ sub copy {
   }
   if( !defined $key_to || $key_to eq '' ) {
     $self->data($data);
-    return;
+    return $self;
   }
   my $data_to = $self->get($path_preto);
   if( 'HASH' eq ref $data_to ) {
     $data_to->{$key_to} = $data;
-    return;
+    return $self;
   }
   if( 'ARRAY' eq ref $data_to ) {
     unless( $key_to =~ /^\d+$/ ) {
@@ -266,7 +301,7 @@ sub copy {
         path_to_str($path_to)."'";
     }
     $data_to->[$key_to] = $data;
-    return;
+    return $self;
   }
   die "unable to assign to '".(ref($data_to)||'nonref').
     "' by index '$key_to' in path: '".path_to_str($path_to)."'";
@@ -279,6 +314,7 @@ sub move {
   my $data = $self->get($path_from);
   $self->remove($path_from);
   $self->assign($path_to, $data);
+  $self;
 }
 
 
