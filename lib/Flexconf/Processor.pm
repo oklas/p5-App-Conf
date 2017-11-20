@@ -45,7 +45,7 @@ sub init {
 sub error {
   my ($self, $error) = @_;
   if( 2 == scalar @_ ) {
-    $self->{error} = "$error at line $self->{line}";
+    $self->{error} = "$error at flexconf line $self->{line}";
     $self->{state} = ERR;
   } else {
     return $self->{error};
@@ -142,10 +142,13 @@ sub lex_json {
   my $begin;
   my $value;
   until($value || $self->error) {
+    return $self->error('no more tokens during json parse')
+      unless @{ $self->{lexems} };
     my $tok = shift @{ $self->{lexems} };
     if( is_space($tok) && !$begin ) { next } else { $begin = 1 }
     $value = eval { $json->incr_parse($tok); };
-    $self->error($@) if($@);
+    $self->{line}++ if $tok eq "\n";
+    return $self->error($@) if($@);
   }
   $value;
 }
