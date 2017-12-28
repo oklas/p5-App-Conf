@@ -34,8 +34,8 @@ Please visit https://github.com/oklas/flexconf for that.
     $conf->save('app.module', $filename) # autodetect format by file ext
 
     # replace whole tree
-    $conf->assign('',{k=>'v'...})
-    $conf->assign('.',{k=>'v'...})
+    $conf->put('',{k=>'v'...})
+    $conf->put('.',{k=>'v'...})
 
     # access to root of conf tree
     $root = $conf->get
@@ -45,9 +45,9 @@ Please visit https://github.com/oklas/flexconf for that.
     $module_conf = $conf->get('app.module')
 
     # assign subtree in depth by path
-    $conf->assign('h', {a=>[]})
-    $conf->assign('h.a.0', [1,2,3])
-    $conf->assign('h.a.0.2', {k=>'v'})
+    $conf->put('h', {a=>[]})
+    $conf->put('h.a.0', [1,2,3])
+    $conf->put('h.a.0.2', {k=>'v'})
 
     # copy subtree to another location
     $conf->copy('to', 'from')
@@ -143,7 +143,7 @@ sub load {
   }
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
-  $self->assign($path, (\&{"${namespace}::load"})->($filename) );
+  $self->put($path, (\&{"${namespace}::load"})->($filename) );
   $self;
 }
 
@@ -223,8 +223,8 @@ sub get {
 }
 
 
-*put = \&assign;
-sub assign {
+*assign = \&put;
+sub put {
   my ($self, $path, $data) = @_;
   my $path_pre = $self->path_to_array($path);
   my $key_pre = pop @$path_pre;

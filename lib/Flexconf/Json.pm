@@ -13,7 +13,7 @@ sub stringify {
 sub load {
    my ( $filepath ) = @_;
    local $/;
-   open FH, "<", $filepath or return undef;
+   open FH, "<", $filepath or die("Could not load '$filepath' $!");
    my $conf = <FH>;
    $conf = decode_json $conf;
    close FH;
@@ -22,7 +22,7 @@ sub load {
 
 sub save {
    my ( $filepath, $conf ) = @_;
-   open FH, ">", $filepath or die("Could not open file. $!");
+   open FH, ">", $filepath or die("Could not save '$filepath' $!");
    print FH encode_json $conf;
    close FH;
 }

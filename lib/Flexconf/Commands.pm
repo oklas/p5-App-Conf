@@ -59,7 +59,7 @@ sub tree {
     $self->$cmd($cmd, @args);
   };
   my $exception = $@;
-  $root->assign($prefix_arg, $tree->data);
+  $root->put($prefix_arg, $tree->data);
   $self->{conf} = $root;
   die $exception if $exception;
 }
