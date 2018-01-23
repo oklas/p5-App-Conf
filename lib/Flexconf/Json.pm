@@ -27,5 +27,10 @@ sub save {
    close FH;
 }
 
+sub stringify_pretty {
+  JSON::MaybeXS->new->pretty(1)->utf8->allow_nonref->
+    space_before(0)->space_after(1)->encode(shift)
+}
+
 1;
 

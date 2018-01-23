@@ -15,6 +15,7 @@ use Pod::Usage;
 
 use Flexconf;
 use Flexconf::Processor;
+use Flexconf::Json;
 
 
 sub usage {
@@ -28,7 +29,7 @@ sub main {
   return usage unless @argv;
 
   my %opts = @argv;
-  my %known; @known{ qw[-t -c -f] } = ();
+  my %known; @known{ qw[-t -c -f -g -q] } = ();
 
   return usage unless grep{exists $known{$_}} keys %opts;
 
@@ -45,6 +46,21 @@ sub main {
   if( $opts{-f} ) {
     my $processor = Flexconf::Processor->new($conf);
     $processor->eval($opts{-f});
+  }
+
+  if( $opts{-g} ) {
+    print Flexconf::Json::stringify_pretty(
+      $conf->get( $opts{-g} )
+    );
+  }
+
+  if( $opts{-q} ) {
+    my $res = $conf->get( $opts{-q} );
+    if( (grep{ $_ eq ref $res } ('HASH', 'ARRAY')) ) {
+      warn "not a hash or array at '$opts{-q}' to get quote\n";
+      exit 255
+    }
+    print $res
   }
 }
 

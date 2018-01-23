@@ -11,7 +11,12 @@ Flexconf command line interface implementation
 
 =head1 SYNOPSIS
 
-    flx [-t type] [-c path-to-conf] [-f 'flexconf script']
+    flx [ -t -c -f -g -q ]
+      [-t type]              # file type
+      [-c path-to-conf]      # conf path to open
+      [-f 'flexconf script'] # flex script to execute
+      [-g flex.path]         # get value in json
+      [-q flex.path]         # get scalar value in plain
 
 =cut
 

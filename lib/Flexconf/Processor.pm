@@ -1,8 +1,7 @@
 package Flexconf::Processor;
 
-use JSON::MaybeXS;
-
 use Flexconf::Commands;
+use Flexconf::Json;
 
 
 use constant ERR  => 0;
@@ -206,8 +205,7 @@ sub eval {
     my ( $method, @args ) = @{$_};
     my $result = $commands->$method($method, @args);
     if( $result && $result != $flexconf ) {
-      print JSON::MaybeXS->new->pretty(1)->utf8->allow_nonref->
-        space_before(0)->space_after(1)->encode($result)
+      print Flexconf::Json::stringify_pretty($result)
     }
   }
 }
