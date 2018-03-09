@@ -56,13 +56,13 @@
    "release_status" : "unstable",
    "resources" : {
       "bugtracker" : {
-         "web" : "https://github.com/oklas/flexconf/issues"
+         "web" : "https://github.com/oklas/p5-Flexconf/issues"
       },
-      "homepage" : "https://github.com/oklas/flexconf",
+      "homepage" : "https://github.com/oklas/p5-Flexconf",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/oklas/flexconf.git",
-         "web" : "https://github.com/oklas/flexconf"
+         "url" : "git://github.com/oklas/p5-Flexconf.git",
+         "web" : "https://github.com/oklas/p5-Flexconf"
       }
    },
    "version" : "0.01",
