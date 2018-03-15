@@ -119,47 +119,6 @@ sub is_delim {
   $tok =~ /^[;\n]+$/;
 }
 
-sub expand_variable_chunk {
-  my ($self, $chunk) = @_;
-
-  my ($open) = $chunk =~ /^(.)/;
-  my $close = {
-    '[' => ']',
-    '{' => '}',
-  }->{$open};
-
-  return $self->error("wrong brace '$open' for \$ '$chunk'") unless $close;
-  my ( $expand, undef, $tail ) = $chunk =~ /[\[\{]([^$close]+)([\]\}]?)(.*)/;
-  return $self->error("unmatched brace '$open'") unless $2;
-  my ( $var, $def ) = split ':', $expand;
-
-  my $value = {
-    '[' => sub{ $self->{conf}->get($_[0]) },
-    '{' => sub{ $ENV{($_[0])} },
-  }->{$open}->($var);
-
-  my ($defop, $defval) = $def =~ /^(.)(.*)$/;
-
-  $value = !length($def) ? $value : ({
-      '+' => sub{ length($_[0]) ? $_[1] : $_[0] },
-      '-' => sub{ length($_[0]) ? $_[0] : $_[1] },
-    }->{$defop} || sub{$self->error("wrong operator '$defop' in expand")}
-  )->($value, $defval);
-
-  $value . $tail
-}
-
-sub expand_variables {
-  my ($self, $arg) = @_;
-  my @chunks = split /\$/, $arg;
-  my $result = $arg =~ /^\$/ ? '' : shift @chunks;
-  $result .= join '', map {
-    $self->expand_variable_chunk($_)
-  } grep{ length } @chunks;
-  return '' if $self->error;
-  $result
-}
-
 sub is_cmd {
   my $tok = shift;
   my $cmds = cmd_hash;
@@ -227,8 +186,6 @@ sub tok_arg {
   my ($self, $tok) = @_;
   return if( is_space($tok) );
   return $self->stmt_done if( is_delim($tok) );
-  $tok = $self->expand_variables($tok);
-  return '' if $self->error;
   $self->stmt_push($tok);
   $self->set_state_by_arg();
 }

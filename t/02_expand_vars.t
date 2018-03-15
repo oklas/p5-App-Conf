@@ -3,13 +3,14 @@ use Test::More 0.98;
 
 use_ok $_ for qw(
   Flexconf
-  Flexconf::Processor
+  Flexconf::Expander
 );
 
-my $c;
+my $v;
+my $p;
 
 sub create {
-  return Flexconf::Processor->new(
+  return Flexconf::Expander->new(
     Flexconf->new()->put('.', {
       k1 => 'v1',
       K2 => {
@@ -24,7 +25,7 @@ sub t {
   my ( $arg, $expected, $testname ) = @_;
   my $p = create();
   is(
-    $p->expand_variables( $arg ),
+    $p->expand( $arg ),
     $expected,
     $testname,
   );
@@ -50,6 +51,15 @@ t 'a.$[K2.K].b', 'a.V2.b', 'flex: sub key 2';
 
 t 'a.${e1}.b.${E2}.c', 'a.g1.b.G2.c', 'env: two sub keys';
 t 'a.$[k1].b.$[K2.K].c', 'a.v1.b.V2.c', 'flex: two sub keys';
+
+$p = create();
+$v = $p->expand({
+  k1 => 'a.$[K2.K].b',
+  k2 => [ 'a.$[K2.K].b.$[k1].c' ],
+});
+
+t $v->{k1}, 'a.V2.b', 'test hash';
+t $v->{k2}->[0], 'a.V2.b.v1.c', 'test array in hash';
 
 done_testing;
 
