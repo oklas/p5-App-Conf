@@ -1,6 +1,10 @@
 package Flexconf::Commands;
 
+use strict;
+use warnings;
+
 use Flexconf;
+use Flexconf::Expander;
 
 sub new {
   my ($package, $flexconf) = @_;
@@ -35,6 +39,15 @@ sub rev_two_args {
 sub remove {
   my ($self, $cmd, $path) = @_;
   $self->{conf}->$cmd($path);
+}
+
+sub expand {
+  my ($self, $cmd, $path) = @_;
+  $self->{expander} = Flexconf::Expander->new($self->{conf})
+    unless $self->{expander};
+  my $var = $self->{conf}->get($path);
+  $var = $self->{expander}->expand($var);
+  $self->{conf}->put($path, $var);
 }
 
 sub eval {

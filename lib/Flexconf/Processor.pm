@@ -19,7 +19,7 @@ sub new {
 
 sub cmd_hash {
   my @cmds = qw[
-    on tree eval load save get put cp copy mv move rm remove
+    on tree eval expand load save get put cp copy mv move rm remove
   ];
   my %cmds;
   map{ $cmds{$_} = {} } @cmds;
