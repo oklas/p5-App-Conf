@@ -1,6 +1,7 @@
 package Flexconf::Processor;
 
 use Flexconf::Commands;
+use Flexconf::Expander;
 use Flexconf::Json;
 
 
@@ -14,6 +15,7 @@ sub new {
   bless {
     conf => $flexconf,
     json => JSON::MaybeXS->new->allow_nonref->pretty(1)->utf8,
+    expander => Flexconf::Expander->new($flexconf),
    }, $package;
 }
 
@@ -186,7 +188,10 @@ sub tok_arg {
   my ($self, $tok) = @_;
   return if( is_space($tok) );
   return $self->stmt_done if( is_delim($tok) );
-  $self->stmt_push($tok);
+  my $extok = $self->{expander}->expand_variables($tok);
+  return $self->error($self->{expander}->error)
+    if $self->{expander}->error;
+  $self->stmt_push($extok);
   $self->set_state_by_arg();
 }
 
