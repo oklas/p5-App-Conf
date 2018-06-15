@@ -188,7 +188,7 @@ sub tok_arg {
   my ($self, $tok) = @_;
   return if( is_space($tok) );
   return $self->stmt_done if( is_delim($tok) );
-  my $extok = $self->{expander}->expand_variables($tok);
+  my $extok = $self->{expander}->expand($tok);
   return $self->error($self->{expander}->error)
     if $self->{expander}->error;
   $self->stmt_push($extok);
