@@ -194,6 +194,7 @@ sub reserve {
 }
 
 
+*fetch = \&get;
 sub get {
   my ($self, $path) = @_;
   $path = path_to_array($path);

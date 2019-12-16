@@ -29,7 +29,7 @@ sub main {
   return usage unless @argv;
 
   my %opts = @argv;
-  my %known; @known{ qw[-t -c -f -g -q] } = ();
+  my %known; @known{ qw[-t -c -e -g -q] } = ();
 
   return usage unless grep{exists $known{$_}} keys %opts;
 
@@ -43,9 +43,9 @@ sub main {
     }
   }
 
-  if( $opts{-f} ) {
+  if( $opts{-e} ) {
     my $processor = Flexconf::Processor->new($conf);
-    $processor->eval($opts{-f});
+    $processor->eval($opts{-e});
   }
 
   if( $opts{-g} ) {
@@ -57,7 +57,7 @@ sub main {
   if( $opts{-q} ) {
     my $res = $conf->get( $opts{-q} );
     if( (grep{ $_ eq ref $res } ('HASH', 'ARRAY')) ) {
-      warn "not a hash or array at '$opts{-q}' to get quote\n";
+      warn "must be not a hash or an array at '$opts{-q}' to get quote\n";
       exit 255
     }
     print $res
