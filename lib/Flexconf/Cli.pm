@@ -29,7 +29,7 @@ sub main {
   return usage unless @argv;
 
   my %opts = @argv;
-  my %known; @known{ qw[-t -c -e -g -q] } = ();
+  my %known; @known{ qw[-t -c -e -g -q -k] } = ();
 
   return usage unless grep{exists $known{$_}} keys %opts;
 
@@ -61,6 +61,17 @@ sub main {
       exit 255
     }
     print $res
+  }
+
+  if( $opts{-k} ) {
+    my $res = $conf->get( $opts{-k} );
+    if (ref($res) eq 'ARRAY') {
+      print join ' ', 0 .. $#$res;
+    } elsif (ref($res) eq 'HASH') {
+      print join ' ', keys %$res;
+    } elsif (ref($res)) {
+      print ''
+    }
   }
 }
 
