@@ -17,6 +17,7 @@ Flexconf command line interface implementation
       [-e 'flexconf script'] # eval flex script
       [-g flex.path]         # get value in json
       [-q flex.path]         # get scalar value in plain
+      [-k flex.path]         # get space separated list of keys
 
 =cut
 
