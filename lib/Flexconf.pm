@@ -127,6 +127,7 @@ sub save {
     $filename = $type;
     $type = 'auto';
   }
+  die "filename is not specified at: ".join(':', (caller)[1,2]) unless $filename;
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
   my $data = $self->get($path);
@@ -141,6 +142,7 @@ sub load {
     $filename = $type;
     $type = 'auto';
   }
+  die "filename is not specified at: ".join(':', (caller)[1,2]) unless $filename;
   $type = $self->type_by_filename($filename) if $type eq 'auto';
   my $namespace = $self->_namespace($type);
   $self->put($path, (\&{"${namespace}::load"})->($filename) );
